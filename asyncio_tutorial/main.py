@@ -1,32 +1,40 @@
-import asyncio
+# asyncio_tutorial/main.py
+
+from asyncio_tutorial import asyncio
+from task_groups import task_groups
+from gather_results import gather_results
 import time
 
-# coroutine, returns an awaitable object (no return statement
-async def say_after(delay, what):
-    await asyncio.sleep(delay)
-    print(what)
 
 # Create tasks them await them
 # That means create them then launch them all at the same time
 async def main():
-    # asyncio handles the awaiting of these tasks implicitly
-    # when the context manager exits
-    # so it's really just creating tasks
-    async with asyncio.TaskGroup() as tg:
-        tg.create_task(say_after(1, 'hello'))
-        tg.create_task(say_after(2, 'world'))
-        
-        # my create loop creating tasks for the task group
-        for task_delay in range(9):
-            tg.create_task(say_after(task_delay, str(task_delay)))
+    start_time = time.time()
+    print(f"main started at {start_time}")
+    try:
+        # gather means gather the results of multiple coroutines (awaitable functions)
+        # takes multiple functions as arguments
+        gather_task = asyncio.gather(
+            task_groups(),
+            gather_results(),
+        )
 
-        print(f"started at {time.strftime('%X')}")
-    # Exit context manager here
-    # This is where the awaitable objects start running
-    # When the last one is done the message is printed
-    # main is async so awaiting all these awaitables until they're all done
-    print(f"finished at {time.strftime('%X')}")
+        results = await gather_task
+        print('results', results)
 
+        # Print results with indication of which function they correspond to
+        for idx, result in enumerate(results):
+            if idx == 0:
+                print(f"Result from task_groups(): {result}")
+            else:
+                print(f"Result from factorial({chr(ord('A') + idx - 1)}, {idx + 1}): {result}")
+
+        finish_time = time.time()
+        total_time = finish_time - start_time
+        print(f"main finished at {finish_time}")
+        print(f"Total time: {total_time:.2f} seconds")
+    except  asyncio.CancelledError as e:
+        print(e)
 
 # Run the main function within the asyncio event loop
 asyncio.run(main())  # main is an async function
