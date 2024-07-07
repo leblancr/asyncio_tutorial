@@ -1,6 +1,6 @@
 # asyncio_tutorial/gather_results.py
 
-from asyncio_tutorial import asyncio
+from asyncio_tutorial import asyncio, async_time_function
 import time
 
 
@@ -14,12 +14,13 @@ async def factorial(name, number):
     print(f"Task {name}: factorial({number}) = {f}")
     return f
     
+@async_time_function
 async def gather_results():
-    task_obj = await asyncio.gather(
-    factorial("A", 2),
-    factorial("B", 3),
-    factorial("C", 4),
-    factorial("D", 5),
-    factorial("E", 6),
-)
+    results = await asyncio.gather(
+        factorial("A", 2),
+        factorial("B", 3),
+        factorial("C", 4),
+        factorial("D", 5),
+    )
+    return results  # Return the gathered results
  
