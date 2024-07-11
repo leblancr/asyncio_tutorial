@@ -6,15 +6,18 @@ from task_groups import task_groups
 from gather_results import gather_results
 from timing_utils import async_time_function, execution_times
 import time
-import inspect
+import tracemalloc
+
+tracemalloc.start()
 
 
 # Create tasks them await them
 # That means create them then launch them all at the same time
 async def main():
     start_time = time.time()
-    print(f"main started at {start_time}")
+    print(f"main started at {time.strftime('%X')}")
     try:
+        # results = []
         loop = asyncio.get_running_loop()
         loop.set_task_factory(eager_task_factory)
 
@@ -25,15 +28,16 @@ async def main():
             # Add more functions here as needed
         }
 
-        # Gather results from decorated functions
-        tasks = [async_functions[func_name]() for func_name in async_functions]
-        results = await asyncio.gather(*tasks)  # * means unpack
+        # using gather
+        tasks = [func() for func in async_functions.values()]
 
+        # Execute all tasks concurrently
+        results = await asyncio.gather(*tasks)
+
+        # Results are now collected and available in `results`
         print('\n--- Results ---')
-
-        # Print results dynamically, zip makes tuples (func_name, result)
-        for func_name, result in zip(async_functions.keys(), results):
-            print(f"Result from {func_name}: {result}")
+        for result in results:
+            print(result)
 
         print("\n--- Execution Times ---")
         for func_name, exec_time in execution_times.items():
