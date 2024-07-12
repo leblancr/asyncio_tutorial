@@ -32,8 +32,8 @@ async def task_groups():
         # All tasks are awaited when the context manager exits.
         print('Create tasks in TaskGroup context manager')
         async with asyncio.TaskGroup() as tg:
-            task1_delay = 1
-            task2_delay = 2
+            task1_delay = 3
+            task2_delay = 4
 
             print(f"tg.create_task(say_after({task1_delay}, 'hello'))")
             task1_obj = tg.create_task(say_after(task1_delay, 'hello'), name='task1_obj')
@@ -44,10 +44,10 @@ async def task_groups():
             background_tasks.add(task_to_cancel)
 
             try:
-                # res = await shield(task_obj2)  # shield fron cancel
+                res = await shield(task_to_cancel)  # shield fron cancel
                 # Wait for task_obj2 with a timeout of 1 second
-                result = await asyncio.wait_for(task_to_cancel, timeout=30)
-                # print(f"Result of task_obj2: {result}")
+                result = await asyncio.wait_for(task_to_cancel, timeout=3)
+                print(f"Result of task2_obj: {result}")
             except asyncio.TimeoutError:
                 print(f"*** Timeout occurred, cancelling {task_to_cancel.get_name()} ***")
                 task_to_cancel.cancel()  # Cancel the task if it takes too long
@@ -74,5 +74,7 @@ async def task_groups():
         for task in background_tasks:
             print(task.result())
         print(f"task_groups finished at {time.strftime('%X')}")
+
+        return [background_task.result() for background_task in background_tasks]
     except  asyncio.CancelledError as e:
         print(e)
